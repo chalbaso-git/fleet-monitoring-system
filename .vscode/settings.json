@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "aviancavsts",
+        "projectKey": "Acciones&Dividendos-Frontend"
+    }
+}
