@@ -1,11 +1,9 @@
 // Export all type modules
 export * from './entities/alert';
 export * from './entities/geolocation';
-export * from './requests/alert';
-export * from './requests/geolocation';
-export * from './responses/alert';
-export * from './responses/geolocation';
-export * from './enums';
+export * from './entities/route';
+export * from './entities/vehicle';
+export * from './entities/routing';
 
 // Common types
 export interface BaseEntity {
