@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertApiService } from '@/services/api/alertService';
+import { AlertApiService } from '@/services/api/alert';
 import { Alert } from '@/types/entities/alert';
 import { CreateAlertRequest } from '@/types/requests/alert';
 import { AlertFilters } from '@/types/responses/alert';
@@ -158,3 +158,7 @@ function getAlertSeverity(alertType: string): AlertSeverity {
 
   return severityMap[alertType] || AlertSeverity.MEDIUM;
 }
+
+// Export specialized hooks
+export * from './analytics';
+export * from './mutations';
