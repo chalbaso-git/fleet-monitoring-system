@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { API_ENDPOINTS } from '../../constants';
+import { environmentConfig, logger, validateEnvironmentConfig } from '../../config/environment';
 
 // Simple error type
 interface ApiError {
@@ -9,13 +10,23 @@ interface ApiError {
   timestamp?: string;
 }
 
-// Create base axios instance
+// Validate environment configuration on module load
+if (!validateEnvironmentConfig()) {
+  throw new Error('Invalid environment configuration. Please check your .env files.');
+}
+
+// Create base axios instance with HTTPS support
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_ENDPOINTS.BASE_URL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
+  // For development with self-signed certificates
+  ...(environmentConfig.env === 'development' && !environmentConfig.httpsConfig.rejectUnauthorized && {
+    httpsAgent: undefined, // Allow self-signed certificates in development
+  }),
 });
 
 // Request interceptor
@@ -30,12 +41,12 @@ apiClient.interceptors.request.use(
     // Add request timestamp
     (config as any).metadata = { startTime: new Date() };
     
-    console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    logger.debug(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
     
     return config;
   },
   (error) => {
-    console.error('❌ API Request Error:', error);
+    logger.error('❌ API Request Error:', error);
     const errorObj = error instanceof Error ? error : new Error(error?.message || String(error));
     return Promise.reject(errorObj);
   }
@@ -48,7 +59,7 @@ apiClient.interceptors.response.use(
     const duration = (config as any).metadata ? 
       new Date().getTime() - (config as any).metadata.startTime.getTime() : 0;
     
-    console.log(
+    logger.debug(
       `✅ API Response: ${config.method?.toUpperCase()} ${config.url} (${duration}ms)`
     );
     
@@ -59,7 +70,7 @@ apiClient.interceptors.response.use(
     const duration = config?.metadata ? 
       new Date().getTime() - config.metadata.startTime.getTime() : 0;
     
-    console.error(
+    logger.error(
       `❌ API Error: ${config?.method?.toUpperCase()} ${config?.url} (${duration}ms)`,
       response?.data || error.message
     );
