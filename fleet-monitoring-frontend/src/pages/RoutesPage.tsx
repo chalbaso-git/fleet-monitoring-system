@@ -46,7 +46,8 @@ const RoutesPage: React.FC = () => {
   
   const [searchParams, setSearchParams] = useState({
     vehicleId: '',
-    date: '',
+    fromDate: '',
+    toDate: '',
   });
 
   // Hooks de API
@@ -58,7 +59,8 @@ const RoutesPage: React.FC = () => {
     refetch: refetchFiltered 
   } = useRoutesByVehicleAndDate(
     searchParams.vehicleId, 
-    searchParams.date
+    searchParams.fromDate,
+    searchParams.toDate
   );
 
   const [showingFiltered, setShowingFiltered] = useState(false);
@@ -85,7 +87,7 @@ const RoutesPage: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    if (searchParams.vehicleId && searchParams.date) {
+    if (searchParams.vehicleId && searchParams.fromDate && searchParams.toDate) {
       await refetchFiltered();
       setShowingFiltered(true);
       setOpenSearchDialog(false);
@@ -156,7 +158,7 @@ const RoutesPage: React.FC = () => {
             </Button>
           }
         >
-          <strong>Filtro Activo:</strong> Vehículo {searchParams.vehicleId} - Fecha {searchParams.date}
+          <strong>Filtro Activo:</strong> Vehículo {searchParams.vehicleId} - Desde {searchParams.fromDate} hasta {searchParams.toDate}
         </MuiAlert>
       )}
 
@@ -394,10 +396,18 @@ const RoutesPage: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Fecha"
+              label="Fecha Desde"
               type="date"
-              value={searchParams.date}
-              onChange={(e) => setSearchParams({ ...searchParams, date: e.target.value })}
+              value={searchParams.fromDate}
+              onChange={(e) => setSearchParams({ ...searchParams, fromDate: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              fullWidth
+              label="Fecha Hasta"
+              type="date"
+              value={searchParams.toDate}
+              onChange={(e) => setSearchParams({ ...searchParams, toDate: e.target.value })}
               InputLabelProps={{ shrink: true }}
             />
           </Box>
@@ -409,7 +419,7 @@ const RoutesPage: React.FC = () => {
           <Button 
             onClick={handleSearch} 
             variant="contained"
-            disabled={!searchParams.vehicleId || !searchParams.date || isLoadingFiltered}
+            disabled={!searchParams.vehicleId || !searchParams.fromDate || !searchParams.toDate || isLoadingFiltered}
             startIcon={isLoadingFiltered ? <CircularProgress size={16} /> : <SearchIcon />}
           >
             {isLoadingFiltered ? 'Buscando...' : 'Buscar'}

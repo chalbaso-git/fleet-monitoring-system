@@ -33,15 +33,15 @@ export class RouteApiService {
   }
 
   /**
-   * Get routes by vehicle and date
-   * GET /api/route/by-vehicle-and-date
+   * Get routes by vehicle and date range
+   * GET /api/route/history?vehicleId=xxx&from=xxx&to=xxx
    */
-  static async getRoutesByVehicleAndDate(vehicleId: string, date: string): Promise<Route[]> {
+  static async getRoutesByVehicleAndDate(vehicleId: string, from: string, to: string): Promise<Route[]> {
     try {
       const response = await apiClient.get<Route[]>(
-        `${RouteApiService.BASE_PATH}/by-vehicle-and-date`,
+        `${RouteApiService.BASE_PATH}/history`,
         {
-          params: { vehicleId, date }
+          params: { vehicleId, from, to }
         }
       );
       return response.data;

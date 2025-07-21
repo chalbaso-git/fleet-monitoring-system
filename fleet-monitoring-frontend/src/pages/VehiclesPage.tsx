@@ -30,70 +30,15 @@ import {
   Build as MaintenanceIcon,
   SignalWifiOff as OfflineIcon,
 } from '@mui/icons-material';
-import { useDeleteVehicle } from '../hooks';
-
-// Datos mock para vehículos (hasta que tengamos un endpoint GET para vehículos)
-interface Vehicle {
-  id: string;
-  name: string;
-  licensePlate: string;
-  model: string;
-  year: number;
-  status: 'active' | 'inactive' | 'maintenance' | 'offline';
-  lastLocation?: string;
-  lastSeen?: string;
-}
+import { useDeleteVehicle, useVehicles } from '../hooks';
 
 const VehiclesPage: React.FC = () => {
-  // Estado para vehículos mock (reemplazar con useVehicles cuando esté disponible)
-  const [vehicles, setVehicles] = useState<Vehicle[]>([
-    {
-      id: 'VEH-001',
-      name: 'Camión de Reparto 1',
-      licensePlate: 'ABC-123',
-      model: 'Mercedes Sprinter',
-      year: 2022,
-      status: 'active',
-      lastLocation: 'Bogotá Centro',
-      lastSeen: '2024-01-15T10:30:00Z',
-    },
-    {
-      id: 'VEH-002',
-      name: 'Camión de Reparto 2',
-      licensePlate: 'DEF-456',
-      model: 'Ford Transit',
-      year: 2021,
-      status: 'maintenance',
-      lastLocation: 'Zona Norte',
-      lastSeen: '2024-01-15T08:45:00Z',
-    },
-    {
-      id: 'VEH-003',
-      name: 'Camión de Carga',
-      licensePlate: 'GHI-789',
-      model: 'Chevrolet NPR',
-      year: 2023,
-      status: 'active',
-      lastLocation: 'Soacha',
-      lastSeen: '2024-01-15T11:15:00Z',
-    },
-    {
-      id: 'VEH-004',
-      name: 'Van de Distribución',
-      licensePlate: 'JKL-012',
-      model: 'Renault Master',
-      year: 2020,
-      status: 'offline',
-      lastLocation: 'Desconocida',
-      lastSeen: '2024-01-14T16:20:00Z',
-    },
-  ]);
+  // Hooks para manejar vehículos
+  const { data: vehicles = [], isLoading, error } = useVehicles();
+  const deleteVehicleMutation = useDeleteVehicle();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [vehicleToDelete, setVehicleToDelete] = useState<string | null>(null);
-
-  // Hook para eliminar vehículo
-  const deleteVehicleMutation = useDeleteVehicle();
 
   const handleDeleteClick = (vehicleId: string) => {
     setVehicleToDelete(vehicleId);
@@ -104,8 +49,7 @@ const VehiclesPage: React.FC = () => {
     if (vehicleToDelete) {
       try {
         await deleteVehicleMutation.mutateAsync(vehicleToDelete);
-        // Actualizar estado local (temporal hasta tener GET vehicles)
-        setVehicles(prev => prev.filter(v => v.id !== vehicleToDelete));
+        // Los datos se actualizarán automáticamente por React Query
         setDeleteDialogOpen(false);
         setVehicleToDelete(null);
       } catch (error) {
@@ -115,7 +59,7 @@ const VehiclesPage: React.FC = () => {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'active': return 'success';
       case 'inactive': return 'default';
       case 'maintenance': return 'warning';
@@ -125,7 +69,7 @@ const VehiclesPage: React.FC = () => {
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'active': return <DirectionsCar color="success" />;
       case 'maintenance': return <MaintenanceIcon color="warning" />;
       case 'offline': return <OfflineIcon color="error" />;
@@ -134,18 +78,38 @@ const VehiclesPage: React.FC = () => {
   };
 
   const getStatusText = (status: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'active': return 'Activo';
       case 'inactive': return 'Inactivo';
       case 'maintenance': return 'Mantenimiento';
       case 'offline': return 'Sin conexión';
-      default: return status;
+      default: return status || 'Desconocido';
     }
   };
 
-  const activeVehicles = vehicles.filter(v => v.status === 'active').length;
-  const maintenanceVehicles = vehicles.filter(v => v.status === 'maintenance').length;
-  const offlineVehicles = vehicles.filter(v => v.status === 'offline').length;
+  // Estadísticas de vehículos
+  const activeVehicles = vehicles.filter(v => v.status?.toLowerCase() === 'active').length;
+  const maintenanceVehicles = vehicles.filter(v => v.status?.toLowerCase() === 'maintenance').length;
+  const offlineVehicles = vehicles.filter(v => v.status?.toLowerCase() === 'offline').length;
+
+  // Mostrar loading o error si es necesario
+  if (isLoading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box p={3}>
+        <MuiAlert severity="error">
+          Error al cargar los vehículos: {error.message}
+        </MuiAlert>
+      </Box>
+    );
+  }
 
   return (
     <Box p={3}>

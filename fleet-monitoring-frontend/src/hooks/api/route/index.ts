@@ -11,12 +11,12 @@ export const useRoutes = () => {
   });
 };
 
-// Hook para obtener rutas por vehículo y fecha
-export const useRoutesByVehicleAndDate = (vehicleId: string, date: string) => {
+// Hook para obtener rutas por vehículo y rango de fechas
+export const useRoutesByVehicleAndDate = (vehicleId: string, from: string, to: string) => {
   return useQuery({
-    queryKey: ['routes', 'by-vehicle-date', vehicleId, date],
-    queryFn: () => RouteApiService.getRoutesByVehicleAndDate(vehicleId, date),
-    enabled: !!vehicleId && !!date, // Solo ejecutar si hay vehicleId y date
+    queryKey: ['routes', 'history', vehicleId, from, to],
+    queryFn: () => RouteApiService.getRoutesByVehicleAndDate(vehicleId, from, to),
+    enabled: !!vehicleId && !!from && !!to, // Solo ejecutar si hay todos los parámetros
     staleTime: 60000, // 1 minuto
   });
 };
