@@ -1,5 +1,18 @@
 import apiClient from '../client';
-import { Alert } from '../../../types/entities/alert';
+
+// Simple alert interface that matches the backend
+interface Alert {
+  vehicleId: string;
+  type: string;
+  message: string;
+}
+
+// Simple alert request interface for creating alerts
+interface CreateAlertRequest {
+  vehicleId: string;
+  type: string;
+  message: string;
+}
 
 export class AlertApiService {
   private static readonly BASE_PATH = '/api/alert';
@@ -8,7 +21,7 @@ export class AlertApiService {
    * Register a new alert in the system
    * POST /api/alert
    */
-  static async addAlert(alert: Alert): Promise<string> {
+  static async addAlert(alert: CreateAlertRequest): Promise<string> {
     try {
       const response = await apiClient.post<string>(AlertApiService.BASE_PATH, alert);
       return response.data;

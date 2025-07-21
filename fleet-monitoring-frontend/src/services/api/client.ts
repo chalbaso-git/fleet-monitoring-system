@@ -1,6 +1,13 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
-import { API_ENDPOINTS } from '@/constants';
-import { ApiError } from '@/types/common';
+import { API_ENDPOINTS } from '../../constants';
+
+// Simple error type
+interface ApiError {
+  message: string;
+  status?: number;
+  details?: any;
+  timestamp?: string;
+}
 
 // Create base axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -59,7 +66,7 @@ apiClient.interceptors.response.use(
     // Transform error to our ApiError format
     const apiError: ApiError = {
       message: response?.data?.message || error.message || 'Unknown error',
-      code: response?.status?.toString() || 'NETWORK_ERROR',
+      status: response?.status,
       details: response?.data,
       timestamp: new Date().toISOString(),
     };
