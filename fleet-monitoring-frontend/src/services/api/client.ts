@@ -36,7 +36,8 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     console.error('❌ API Request Error:', error);
-    return Promise.reject(error);
+    const errorObj = error instanceof Error ? error : new Error(error?.message || String(error));
+    return Promise.reject(errorObj);
   }
 );
 
@@ -55,8 +56,8 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     const { config, response } = error;
-    const duration = (config as any)?.metadata ? 
-      new Date().getTime() - (config as any).metadata.startTime.getTime() : 0;
+    const duration = config?.metadata ? 
+      new Date().getTime() - config.metadata.startTime.getTime() : 0;
     
     console.error(
       `❌ API Error: ${config?.method?.toUpperCase()} ${config?.url} (${duration}ms)`,
@@ -71,7 +72,11 @@ apiClient.interceptors.response.use(
       timestamp: new Date().toISOString(),
     };
 
-    return Promise.reject(apiError);
+    const errorObj = new Error(apiError.message);
+    (errorObj as any).status = apiError.status;
+    (errorObj as any).details = apiError.details;
+    (errorObj as any).timestamp = apiError.timestamp;
+    return Promise.reject(errorObj);
   }
 );
 
