@@ -102,8 +102,8 @@ const Dashboard: React.FC = () => {
 
       {/* Estadísticas principales */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 3, mb: 4 }}>
-        {stats.map((stat, index) => (
-          <Card key={index}>
+        {stats.map((stat) => (
+          <Card key={stat.title}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <Avatar sx={{ bgcolor: stat.color, mr: 2 }}>

@@ -216,8 +216,8 @@ const GeolocationPage: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  recentLocations.map((location, index) => (
-                    <TableRow key={index}>
+                  recentLocations.map((location) => (
+                    <TableRow key={`${location.vehicleId}-${location.timestamp}`}>
                       <TableCell>
                         <Box display="flex" alignItems="center" gap={1}>
                           <GpsFixed color="primary" fontSize="small" />

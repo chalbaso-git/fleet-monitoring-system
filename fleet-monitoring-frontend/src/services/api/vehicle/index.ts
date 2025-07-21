@@ -25,7 +25,11 @@ export class VehicleApiService {
   static async getVehicles(): Promise<Vehicle[]> {
     try {
       const response = await apiClient.get<Vehicle[]>(VehicleApiService.BASE_PATH);
-      return response.data;
+      // Transform lastSeen from string to Date
+      return response.data.map(vehicle => ({
+        ...vehicle,
+        lastSeen: new Date(vehicle.lastSeen)
+      }));
     } catch (error) {
       console.error('Error fetching vehicles:', error);
       throw new Error('Failed to fetch vehicles');
@@ -39,7 +43,11 @@ export class VehicleApiService {
   static async getVehicleById(id: string): Promise<Vehicle> {
     try {
       const response = await apiClient.get<Vehicle>(`${VehicleApiService.BASE_PATH}/${id}`);
-      return response.data;
+      // Transform lastSeen from string to Date
+      return {
+        ...response.data,
+        lastSeen: new Date(response.data.lastSeen)
+      };
     } catch (error) {
       console.error('Error fetching vehicle by ID:', error);
       throw new Error('Failed to fetch vehicle by ID');
@@ -52,7 +60,17 @@ export class VehicleApiService {
    */
   static async updateVehicle(id: string, vehicleData: Vehicle): Promise<boolean> {
     try {
-      const response = await apiClient.put<boolean>(`${VehicleApiService.BASE_PATH}/${id}`, vehicleData);
+      // Ensure the vehicleData has the correct id
+      const payload = {
+        ...vehicleData,
+        id: id,
+        // Convert Date to ISO string for API
+        lastSeen: vehicleData.lastSeen instanceof Date 
+          ? vehicleData.lastSeen.toISOString() 
+          : vehicleData.lastSeen
+      };
+
+      const response = await apiClient.put<boolean>(`${VehicleApiService.BASE_PATH}/${id}`, payload);
       return response.data;
     } catch (error) {
       console.error('Error updating vehicle:', error);

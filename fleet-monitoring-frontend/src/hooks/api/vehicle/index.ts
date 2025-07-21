@@ -1,94 +1,65 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+// Cambiar esta línea problemática:
+// import { VehicleApiService } from '@/services/api/vehicle';
+// Por esta (ruta relativa):
 import { VehicleApiService } from '../../../services/api/vehicle';
+
 import { Vehicle } from '../../../types/entities/vehicle';
-import { mockVehicles, getMockVehicleById } from '../../../utils/mockData/vehicles';
+import { toast } from 'sonner';
 
-// Hook para obtener todos los vehículos
-export const useVehicles = (useMockData = false) => {
+const QUERY_KEYS = {
+  vehicles: ['vehicles'],
+  vehicle: (id: string) => ['vehicles', id],
+} as const;
+
+export const useVehicles = () => {
   return useQuery({
-    queryKey: ['vehicles', useMockData],
-    queryFn: async () => {
-      if (useMockData) {
-        return mockVehicles;
-      }
-      try {
-        return await VehicleApiService.getVehicles();
-      } catch (error) {
-        console.warn('Backend no disponible, usando datos mock:', error);
-        return mockVehicles;
-      }
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    queryKey: QUERY_KEYS.vehicles,
+    queryFn: VehicleApiService.getVehicles,
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 };
 
-// Hook para obtener un vehículo por ID
-export const useVehicleById = (id: string, enabled = true, useMockData = false) => {
+export const useVehicle = (id: string) => {
   return useQuery({
-    queryKey: ['vehicle', id, useMockData],
-    queryFn: async () => {
-      if (useMockData) {
-        const mockVehicle = getMockVehicleById(id);
-        if (!mockVehicle) {
-          throw new Error(`Vehículo con ID ${id} no encontrado en datos mock`);
-        }
-        return mockVehicle;
-      }
-      try {
-        return await VehicleApiService.getVehicleById(id);
-      } catch (error) {
-        console.warn('Backend no disponible, usando datos mock:', error);
-        const mockVehicle = getMockVehicleById(id);
-        if (!mockVehicle) {
-          throw new Error(`Vehículo con ID ${id} no encontrado`);
-        }
-        return mockVehicle;
-      }
-    },
-    enabled: enabled && !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    queryKey: QUERY_KEYS.vehicle(id),
+    queryFn: () => VehicleApiService.getVehicleById(id),
+    enabled: !!id,
+    retry: 2,
   });
 };
 
-// Hook para eliminar un vehículo
-export const useDeleteVehicle = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (vehicleId: string) => VehicleApiService.deleteVehicle(vehicleId),
-    onSuccess: () => {
-      // Invalidar consultas relacionadas con vehículos
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      queryClient.invalidateQueries({ queryKey: ['routes'] });
-    },
-    onError: (error) => {
-      console.error('Error al eliminar vehículo:', error);
-    },
-  });
-};
-
-// Hook para actualizar un vehículo
 export const useUpdateVehicle = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, vehicleData }: { id: string; vehicleData: Vehicle }) => 
+    mutationFn: ({ id, vehicleData }: { id: string; vehicleData: Vehicle }) =>
       VehicleApiService.updateVehicle(id, vehicleData),
-    onSuccess: (_, variables) => {
-      // Invalidar consultas relacionadas
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      queryClient.invalidateQueries({ queryKey: ['vehicle', variables.id] });
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicles });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicle(id) });
+      toast.success('Vehículo actualizado correctamente');
     },
     onError: (error) => {
-      console.error('Error al actualizar vehículo:', error);
+      toast.error('Error al actualizar el vehículo');
+      console.error('Update vehicle error:', error);
     },
   });
 };
 
-const vehicleHooks = { 
-  useVehicles,
-  useVehicleById,
-  useDeleteVehicle, 
-  useUpdateVehicle 
+export const useDeleteVehicle = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: VehicleApiService.deleteVehicle,
+    onSuccess: (message) => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.vehicles });
+      toast.success(message || 'Vehículo eliminado correctamente');
+    },
+    onError: (error) => {
+      toast.error('Error al eliminar el vehículo');
+      console.error('Delete vehicle error:', error);
+    },
+  });
 };
-export default vehicleHooks;
