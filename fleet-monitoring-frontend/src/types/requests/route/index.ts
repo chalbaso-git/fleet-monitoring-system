@@ -1,7 +1,7 @@
-// Route request types index
-export * from './addRouteRequest';
-export * from './createRouteRequest';
-export * from './optimizeRouteRequest';
+// Type aliases for union types
+export type WaypointType = 'start' | 'waypoint' | 'stop' | 'destination';
+export type OptimizationCriteria = 'shortest' | 'fastest' | 'fuel_efficient' | 'avoid_traffic';
+export type VehicleType = 'car' | 'truck' | 'van' | 'motorcycle';
 
 /**
  * Request DTO for adding a route - matches backend RouteDto
@@ -32,15 +32,15 @@ export interface CreateRouteRequest {
     latitude: number;
     longitude: number;
     address?: string;
-    type?: 'start' | 'waypoint' | 'stop' | 'destination';
+    type?: WaypointType;
     stopDuration?: number; // Minutes
     notes?: string;
   }>;
   optimization?: {
-    criteria: 'shortest' | 'fastest' | 'fuel_efficient' | 'avoid_traffic';
+    criteria: OptimizationCriteria;
     avoidTolls?: boolean;
     avoidHighways?: boolean;
-    vehicleType?: 'car' | 'truck' | 'van' | 'motorcycle';
+    vehicleType?: VehicleType;
   };
   scheduledStartTime?: string;
   maxDuration?: number; // Minutes
@@ -265,4 +265,4 @@ export interface RouteShareRequest {
 }
 
 // Export validation utilities
-export * from './validation';
+// Validation functions available but not exported as a module

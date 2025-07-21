@@ -141,12 +141,11 @@ export function useAddRoute(): UseMutationResult<AddRouteResponse, Error, AddRou
       });
       queryClient.invalidateQueries({ queryKey: ROUTE_QUERY_KEYS.RECENT() });
       
-      // Optionally add the new route to the cache
-      if (data.route) {
-        queryClient.setQueryData(
-          ROUTE_QUERY_KEYS.DETAIL(data.route.id),
-          data.route
-        );
+      // Optionally refetch to get the new route data
+      if (data.success && data.routeId) {
+        queryClient.invalidateQueries({
+          queryKey: ROUTE_QUERY_KEYS.DETAIL(data.routeId.toString())
+        });
       }
     },
     onError: (error) => {
@@ -170,11 +169,11 @@ export function useCreateRoute(): UseMutationResult<AddRouteResponse, Error, Cre
       });
       queryClient.invalidateQueries({ queryKey: ROUTE_QUERY_KEYS.RECENT() });
 
-      if (data.route) {
-        queryClient.setQueryData(
-          ROUTE_QUERY_KEYS.DETAIL(data.route.id),
-          data.route
-        );
+      // Optionally refetch to get the new route data
+      if (data.success && data.routeId) {
+        queryClient.invalidateQueries({
+          queryKey: ROUTE_QUERY_KEYS.DETAIL(data.routeId.toString())
+        });
       }
     },
   });
@@ -202,16 +201,18 @@ export function useUpdateRoute(): UseMutationResult<
       queryClient.invalidateQueries({ queryKey: ROUTE_QUERY_KEYS.ALL });
       queryClient.invalidateQueries({ queryKey: ROUTE_QUERY_KEYS.RECENT() });
       
-      // If we have the updated route data, update the cache directly
-      if (data.route) {
-        queryClient.setQueryData(
-          ROUTE_QUERY_KEYS.DETAIL(routeId),
-          data.route
-        );
-        
-        // Update vehicle-specific queries if vehicle ID is available
-        queryClient.invalidateQueries({ 
-          queryKey: ROUTE_QUERY_KEYS.BY_VEHICLE(data.route.vehicleId) 
+      // Invalidate vehicle-specific queries
+      if (data.success && data.routeId) {
+        queryClient.invalidateQueries({
+          queryKey: ROUTE_QUERY_KEYS.DETAIL(data.routeId.toString())
+        });
+        // Note: We don't have vehicle ID in response, so invalidate all vehicle queries
+        queryClient.invalidateQueries({
+          queryKey: ROUTE_QUERY_KEYS.BASE,
+          predicate: (query) =>
+            Array.isArray(query.queryKey) &&
+            query.queryKey.length > 1 &&
+            query.queryKey[1] === 'by-vehicle'
         });
       }
     },
