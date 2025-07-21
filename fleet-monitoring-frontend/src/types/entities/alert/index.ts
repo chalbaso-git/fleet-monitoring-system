@@ -1,21 +1,11 @@
-import { BaseEntity } from '../../common';
-import { AlertType } from '../../enums';
+/**
+ * Alert entity types for fleet monitoring system
+ * Simplified to match backend AlertDto
+ */
 
-// Main Alert entity
-export interface Alert extends BaseEntity {
+export interface Alert {
   vehicleId: string;
-  type: AlertType;
+  type: string;
   message: string;
 }
-
-// Extended Alert with computed properties
-export interface AlertWithMetadata extends Alert {
-  severity: string;
-  isRecent: boolean;
-  relativeTime: string;
-  vehicleName?: string;
-}
-
-// Export all alert-related types and utilities
-export * from './constants';
 export * from './utils';
