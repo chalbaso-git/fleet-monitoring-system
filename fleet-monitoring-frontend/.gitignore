@@ -18,6 +18,23 @@
 .env.test.local
 .env.production.local
 
+# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# IDE files
+.vscode/settings.json
+.idea/
+*.sublime-*
+
+# OS generated files
+Thumbs.db
+.DS_Store?
